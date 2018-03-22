@@ -1,0 +1,13 @@
+{
+	"name": "allele_counter",
+	"authors": [
+		"Kevin Gori"
+	],
+    "importPaths": ["BioD"],
+    "dependencies": {
+        "biod": {"versions": "~master", "path": "./BioD"}
+    },
+	"description": "D version of alleleCount",
+	"copyright": "Copyright © 2018, Kevin Gori",
+	"license": "MIT"
+}
