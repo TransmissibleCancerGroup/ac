@@ -1,4 +1,5 @@
 .dub
+dub.selections.json
 docs.json
 __dummy.html
 docs/
@@ -12,3 +13,5 @@ allele_counter-test-*
 *.o
 *.obj
 *.lst
+allele_counter
+data/
