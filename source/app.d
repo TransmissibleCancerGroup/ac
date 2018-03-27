@@ -10,7 +10,6 @@ import std.range;
 import std.stdio;
 
 
-
 int ref_id(R)(R reader, string ref_name) {
     return reader[ref_name].id;
 }
@@ -77,8 +76,7 @@ void main(string[] argv)
     }
 
     int curr_ref = 0;
-    auto reflen = bam.reference_sequences()[curr_ref].length;
-    auto pileup = makePileup(bam.reference(curr_ref)[1 .. reflen]);
+    auto pileup = makePileup(bam.reference(curr_ref)[1 .. uint.max]);
     auto column = pileup.front;
 
     writefln("CHROM\tPOS\tnA\tnC\tnG\tnT\tGood_depth");
@@ -91,28 +89,29 @@ void main(string[] argv)
         auto pos_0based = pos_1based - 1;
 
         if (ref_id != curr_ref) {
-            if (ref_id < curr_ref) {
-                bam = new BamReader(bamfile);
-            }
             curr_ref = ref_id;
-            reflen = bam.reference_sequences()[curr_ref].length;
-            pileup = makePileup(bam.reference(curr_ref)[1 .. reflen]);
+            pileup = makePileup(bam.reference(curr_ref)[1 .. uint.max]);
             column = pileup.front;
         }
 
+        if (pileup.empty) {
+            writefln("%s\t%d\t0\t0\t0\t0\t0", refname, pos_1based);
+            continue;
+        }
+
         assert(column.ref_id == ref_id);
-        while(column.position < pos_0based) {
-            if (pileup.empty) continue;
+        while(column.position < pos_0based && column.ref_id == ref_id) {
+            if (pileup.empty) break;
             pileup.popFront();
             column = pileup.front;
         }
 
         if (column.position == pos_0based) {
             auto bases = column.reads
-                .filter!(read => (read.current_base_quality >= minbasequal) & (read.mapping_quality >= minmapqual) & !read.is_duplicate())
+                .filter!(read => (read.current_base_quality >= minbasequal) && (read.mapping_quality >= minmapqual) && !read.is_duplicate())
                 .map!(read => read.current_base)
                 .to!string;
-            writefln("%s\t%d\t%s\t%s", refname, pos_1based, count_bases(bases), bases);
+            writefln("%s\t%d\t%s", refname, pos_1based, count_bases(bases));
         }
 
         if (column.position > pos_0based) {
