@@ -9,6 +9,7 @@ import std.getopt;
 import std.range;
 import std.stdio;
 
+static string usage = "ac - alleleCounter clone\nUsage: ac -b|--bamfile <bamfile> -l|--locifile <locifile>\n       ac -h|--help";
 
 int ref_id(R)(R reader, string ref_name) {
     return reader[ref_name].id;
@@ -40,15 +41,21 @@ void main(string[] argv)
     int minmapqual = 35;
     int minbasequal = 20;
 
-    auto args = getopt(
-            argv,
-            std.getopt.config.required, "bamfile|b", &bamfile,
-            std.getopt.config.required, "locifile|l", &locifile,
-            "minbasequal|m", &minbasequal,
-            "minmapqual|q", &minmapqual);
+    try {
+        auto args = getopt(
+                argv,
+                std.getopt.config.required, "bamfile|b", "Path to sample BAM file.", &bamfile,
+                std.getopt.config.required, "locifile|l", "Path to loci file.", &locifile,
+                "minbasequal|m", "Minimum base quality [Default: 20].", &minbasequal,
+                "minmapqual|q", "Minimum mapping quality [Default: 35].", &minmapqual);
 
-    if (args.helpWanted) {
-        defaultGetoptPrinter("allele_counter", args.options);
+        if (args.helpWanted) {
+            defaultGetoptPrinter(usage, args.options);
+            return;
+        }
+    }
+    catch (GetOptException) {
+        writeln(usage);
         return;
     }
 
