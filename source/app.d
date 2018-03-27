@@ -62,9 +62,6 @@ void main(string[] argv)
         return;
     }
 
-    writefln("Input bamfile is %s", bamfile);
-    writefln("Input locifile is %s", locifile);
-
     auto bam = new BamReader(bamfile);
     auto loci = File(locifile);
     scope(exit) {
@@ -101,7 +98,10 @@ void main(string[] argv)
 
         assert(column.ref_id == ref_id);
         while(column.position < pos_0based && column.ref_id == ref_id) {
-            if (pileup.empty) break;
+            if (pileup.empty) {
+                writefln("%s\t%d\t0\t0\t0\t0\t0", refname, pos_1based);
+                break;
+            }
             pileup.popFront();
             column = pileup.front;
         }
