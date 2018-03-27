@@ -76,7 +76,7 @@ void main(string[] argv)
     auto pileup = makePileup(bam.reference(curr_ref)[1 .. uint.max]);
     auto column = pileup.front;
 
-    writefln("CHROM\tPOS\tnA\tnC\tnG\tnT\tGood_depth");
+    writefln("#CHR\tPOS\tCount_A\tCount_C\tCount_G\tCount_T\tGood_depth");
 
     foreach (line; loci.byLineCopy) {
         auto spl = split(line, '\t');
