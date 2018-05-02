@@ -166,6 +166,8 @@ void main(string[] argv)
                 }
             // TODO: if reverse(UMI) of reverse strand == UMI of forward strand, collapse both outputs onto
             //       a single line by adding up the bases
+            // TODO: tool should filter out UMI duplicates, so only report the first of each UMI set and skip the rest,
+            //       or even collapse everything down so there is one line per position
             }
             else {
                 auto bases = column.reads
