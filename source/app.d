@@ -51,7 +51,7 @@ void main(string[] argv)
                 "minbasequal|m", "Minimum base quality [Default: 20].", &minbasequal,
                 "minmapqual|q", "Minimum mapping quality [Default: 35].", &minmapqual,
                 "filtered-flag|F", "Ignore reads matching flags [Default: 3852].", &fflags,
-                "required-flag|f", "Ignore reads matching flags [Default: 3].", &rflags);
+                "required-flag|f", "Only count reads matching flags [Default: 3].", &rflags);
 
         if (args.helpWanted) {
             defaultGetoptPrinter(usage, args.options);
