@@ -40,6 +40,8 @@ void main(string[] argv)
     string locifile;
     int minmapqual = 35;
     int minbasequal = 20;
+    int fflags = 3852;
+    int rflags = 3;
 
     try {
         auto args = getopt(
@@ -47,7 +49,9 @@ void main(string[] argv)
                 std.getopt.config.required, "bamfile|b", "Path to sample BAM file.", &bamfile,
                 std.getopt.config.required, "locifile|l", "Path to loci file.", &locifile,
                 "minbasequal|m", "Minimum base quality [Default: 20].", &minbasequal,
-                "minmapqual|q", "Minimum mapping quality [Default: 35].", &minmapqual);
+                "minmapqual|q", "Minimum mapping quality [Default: 35].", &minmapqual,
+                "filtered-flag|F", "Ignore reads matching flags [Default: 3852].", &fflags,
+                "required-flag|f", "Ignore reads matching flags [Default: 3].", &rflags);
 
         if (args.helpWanted) {
             defaultGetoptPrinter(usage, args.options);
@@ -115,7 +119,7 @@ void main(string[] argv)
 
         if (column.position == pos_0based) {
             auto bases = column.reads
-                .filter!(read => (read.current_base_quality >= minbasequal) && (read.mapping_quality >= minmapqual) && !read.is_duplicate())
+                .filter!(read => (read.current_base_quality >= minbasequal) && (read.mapping_quality >= minmapqual) && (read.flag() & fflags) == 0 && (read.flag() & rflags) == rflags)
                 .map!(read => read.current_base)
                 .to!string;
             writefln("%s\t%d\t%s", refname, pos_1based, count_bases(bases));
