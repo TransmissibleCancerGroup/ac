@@ -9,7 +9,20 @@ import std.getopt;
 import std.range;
 import std.stdio;
 
-static string usage = "ac - alleleCounter clone\nUsage: ac -b|--bamfile <bamfile> -l|--locifile <locifile>\n       ac -h|--help";
+static string usage =
+"ac - alleleCounter clone\n"~
+"------------------------\n\n"~
+"Scans a BAM alignment for a number of genomic coordinates and reports the number of As, Cs, Gs and Ts at each.\n\n"~
+"Basic Usage:\n"~
+"    ac -b|--bamfile <bamfile> -l|--locifile <locifile>\n"~
+"    ac -h|--help\n\n"~
+"Available options:\n"~
+"    -b|--bamfile       - The BAM alignment file to search\n"~
+"    -l|--locifile      - A tab-separated list of Chromosome-Position pairs\n"~
+"    -m|--minmapqual    - Reads with mapping quality below this value are skipped (default: 35)\n"~
+"    -q|--minbasequal   - Bases below this quality value are ignored (default: 20)\n"~
+"    -f|--required-flag - Reads must match all flags contained in this integer (default: 3)\n"~
+"    -F|--filtered-flag - Reads must not match any flags contained in this integer (default: 3852)\n";
 
 int ref_id(R)(R reader, string ref_name) {
     return reader[ref_name].id;
@@ -50,8 +63,8 @@ void main(string[] argv)
                 std.getopt.config.required, "locifile|l", "Path to loci file.", &locifile,
                 "minbasequal|m", "Minimum base quality [Default: 20].", &minbasequal,
                 "minmapqual|q", "Minimum mapping quality [Default: 35].", &minmapqual,
-                "filtered-flag|F", "Ignore reads matching flags [Default: 3852].", &fflags,
-                "required-flag|f", "Only count reads matching flags [Default: 3].", &rflags);
+                config.caseSensitive, "filtered-flag|F", "Ignore reads matching flags [Default: 3852].", &fflags,
+                config.caseSensitive, "required-flag|f", "Only count reads matching flags [Default: 3].", &rflags);
 
         if (args.helpWanted) {
             defaultGetoptPrinter(usage, args.options);
@@ -87,13 +100,32 @@ void main(string[] argv)
     auto pileup = makePileup(bam.reference(curr_ref)[1 .. uint.max]);
     auto column = pileup.front;
 
+    stderr.writefln("rflags: %d", rflags);
+    stderr.writefln("fflags: %d", fflags);
     writefln("#CHR\tPOS\tCount_A\tCount_C\tCount_G\tCount_T\tGood_depth");
 
-    foreach (line; loci.byLineCopy) {
+    foreach (linenum, line; loci.byLineCopy.enumerate(1)) {
         auto spl = split(line, '\t');
         string refname = to!string(spl[0]);
-        auto ref_id = bam.ref_id(refname);
-        ulong pos_1based = to!ulong(spl[1]);
+        ulong pos_1based;
+
+        uint ref_id;
+        try {
+            ref_id = bam.ref_id(refname);
+        }
+        catch (Throwable) {
+            stderr.writefln("Skipping locus on line %d with unknown chromosome: %s", linenum, line);
+            continue;
+        }
+
+        try {
+            pos_1based = to!ulong(spl[1]);
+        }
+        catch (std.conv.ConvException) {
+            stderr.writefln("Skipping locus on line %d with undecipherable position: %s", linenum, line);
+            continue;
+        }
+
         auto pos_0based = pos_1based - 1;
 
         if (ref_id != curr_ref) {
