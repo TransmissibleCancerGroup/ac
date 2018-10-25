@@ -100,8 +100,6 @@ void main(string[] argv)
     auto pileup = makePileup(bam.reference(curr_ref)[1 .. uint.max]);
     auto column = pileup.front;
 
-    stderr.writefln("rflags: %d", rflags);
-    stderr.writefln("fflags: %d", fflags);
     writefln("#CHR\tPOS\tCount_A\tCount_C\tCount_G\tCount_T\tGood_depth");
 
     foreach (linenum, line; loci.byLineCopy.enumerate(1)) {
