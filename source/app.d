@@ -1,6 +1,6 @@
 import bio.bam.pileup;
 import bio.bam.reader;
-import std.algorithm: filter, map;
+import std.algorithm: filter, map, sort, uniq;
 import std.array: split;
 import std.conv: to;
 import std.file: exists;
@@ -152,6 +152,9 @@ void main(string[] argv)
         if (column.position == pos_0based) {
             auto bases = column.reads
                 .filter!(read => (read.current_base_quality >= minbasequal) && (read.mapping_quality >= minmapqual) && (read.flag() & fflags) == 0 && (read.flag() & rflags) == rflags)
+                .array
+                .sort!"a.name < b.name"
+                .uniq!"a.name == b.name"
                 .map!(read => read.current_base)
                 .to!string;
             writefln("%s\t%d\t%s", refname, pos_1based, count_bases(bases));
